@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.env
+.venv/
+.vscode/
+*.pt
+*.pth
+.DS_Store
+/data/raw/
+/data/processed/
+notebooks/.ipynb_checkpoints

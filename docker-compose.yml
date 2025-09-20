@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: recomendacao_api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - faiss
+    volumes:
+      - ./data:/app/data
+      - ./src:/app/src
+      - ./notebooks:/app/notebooks
+    environment:
+      - FAISS_HOST=faiss
+      - FAISS_PORT=12345
+
+  faiss:
+    image: ghcr.io/facebookresearch/faiss-cpu:latest
+    container_name: faiss_index
+    expose:
+      - "12345"
+    volumes:
+      - ./data:/data
+    command: tail -f /dev/null  # placeholder, se preferir pode rodar faiss como lib chamada via API python
+
+volumes:
+  data:

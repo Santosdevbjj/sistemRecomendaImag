@@ -10,53 +10,40 @@ jobs:
   build-test-api:
     runs-on: ubuntu-latest
 
-    # Adiciona as permissões de leitura para o repositório e pacotes.
     permissions:
       contents: read
       packages: read
 
-    env:
-      PYTHONPATH: ${{ github.workspace }}
-
     steps:
-      # 1️⃣ Checkout do repositório.
+      # 1️⃣ Checkout do repositório
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      # 2️⃣ Configuração do Python 3.10.
-      - name: Setup Python 3.10
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      # 3️⃣ Instalação de dependências do Python.
-      - name: Install Python dependencies
+      
+      # 2️⃣ Instalação do Docker e Docker Compose
+      - name: Setup Docker
+        uses: docker/setup-buildx-action@v3
+        
+      # 3️⃣ Constrói o contêiner da API e executa os testes dentro dele
+      - name: Build and Run Tests in Container
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install coverage pytest-cov
-
-      # 4️⃣ Inicia a API com Docker Compose em background, construindo as imagens.
-      - name: Start API with Docker Compose
+          docker compose -f docker-compose.yml run --rm api coverage run -m pytest --maxfail=1 --disable-warnings
+          
+      # 4️⃣ Geração do relatório de cobertura do código
+      # Este passo deve ser executado no mesmo ambiente onde o coverage run foi executado
+      # Uma alternativa é copiar o arquivo .coverage do contêiner
+      - name: Generate Coverage Report
         run: |
-          docker compose up -d --build
-          sleep 15  # Aguarda a API estar disponível
+          docker compose -f docker-compose.yml run --rm api coverage report -m
+          docker compose -f docker-compose.yml run --rm api coverage xml
 
-      # 5️⃣ Execução dos testes com cobertura.
-      - name: Run Tests with Coverage
-        run: |
-          coverage run -m pytest --maxfail=1 --disable-warnings
-          coverage report -m
-          coverage xml
-
-      # 6️⃣ Upload do relatório de cobertura como um artefato.
+      # 5️⃣ Upload do relatório de cobertura como um artefato
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage.xml
-
-      # 7️⃣ Parada e remoção dos containers ao final do job.
+          
+      # 6️⃣ Parada e remoção dos contêineres ao final do job.
       - name: Stop and remove Docker containers
-        if: always() # Garante que este passo sempre seja executado
+        if: always()
         run: docker compose down

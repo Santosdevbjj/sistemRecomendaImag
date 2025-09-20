@@ -1,12 +1,13 @@
 # tests/test_api.py
+
+import sys
 import os
-import requests
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import pytest
+import requests
 
-# URL da API (ajuste se mudar porta ou host)
 API_URL = "http://localhost:8000/recommend"
-
-# Imagem de teste
 TEST_IMAGE = "data/processed/cat/cat.1.jpg"
 
 @pytest.mark.parametrize("image_path", [TEST_IMAGE])

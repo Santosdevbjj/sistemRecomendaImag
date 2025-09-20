@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   api:
     build:
@@ -11,21 +9,10 @@ services:
     volumes:
       - ./data:/app/data
       - ./src:/app/src
-      - ./notebooks:/app/notebooks
     environment:
-      - FAISS_HOST=faiss
-      - FAISS_PORT=12345
-    depends_on:
-      - faiss
+      # Essas variáveis de ambiente não são mais necessárias
+      # já que a API acessará o índice localmente.
+      # Remova-as se não forem usadas em outro lugar.
+      # - FAISS_HOST=faiss
+      # - FAISS_PORT=12345
 
-  faiss:
-    image: ghcr.io/facebookresearch/faiss-cpu:latest
-    container_name: faiss_index
-    expose:
-      - "12345"
-    volumes:
-      - ./data:/data
-    command: tail -f /dev/null  # Placeholder: FAISS rodará via Python, não via serviço externo
-
-volumes:
-  data:

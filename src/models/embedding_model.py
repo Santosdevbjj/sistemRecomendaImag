@@ -1,22 +1,39 @@
+# src/models/embedding_model.py
+import torch
 import torch.nn as nn
-from .backbone import get_backbone
+import torchvision.models as models
+import torchvision.transforms as transforms
+from PIL import Image
 
-class EmbeddingNet(nn.Module):
-    def __init__(self, backbone_name='resnet18', embedding_size=256, pretrained=True):
-        super().__init__()
-        backbone, dim = get_backbone(backbone_name, pretrained=pretrained)
-        self.backbone = backbone
-        self.head = nn.Sequential(
-            nn.Linear(dim, embedding_size),
-            nn.ReLU(),
-            nn.BatchNorm1d(embedding_size)
-        )
+class EmbeddingModel(nn.Module):
+    def __init__(self, backbone="resnet50", embedding_dim=2048, pretrained=True):
+        super(EmbeddingModel, self).__init__()
+        if backbone == "resnet50":
+            model = models.resnet50(pretrained=pretrained)
+            layers = list(model.children())[:-1]  # remove camada de classificação
+            self.backbone = nn.Sequential(*layers)
+            self.embedding_dim = embedding_dim
+        else:
+            raise ValueError(f"Backbone {backbone} não suportado.")
 
     def forward(self, x):
-        feat = self.backbone(x)
-        if feat.ndim == 4:
-            feat = feat.view(feat.size(0), -1)
-        emb = self.head(feat)
-        # normalize
-        emb = emb / (emb.norm(p=2, dim=1, keepdim=True) + 1e-8)
-        return emb
+        x = self.backbone(x)
+        x = x.view(x.size(0), -1)  # flatten
+        return x
+
+    def get_embedding(self, image_path, device="cpu"):
+        """Extrai embedding de uma imagem única a partir do caminho."""
+        self.eval()
+        preprocess = transforms.Compose([
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize(
+                mean=[0.485, 0.456, 0.406],
+                std=[0.229, 0.224, 0.225]
+            )
+        ])
+        img = Image.open(image_path).convert("RGB")
+        img_tensor = preprocess(img).unsqueeze(0).to(device)
+        with torch.no_grad():
+            embedding = self.forward(img_tensor)
+        return embedding.cpu().numpy()

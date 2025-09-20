@@ -8,7 +8,11 @@ import pytest
 import requests
 
 API_URL = "http://localhost:8000/recommend"
-TEST_IMAGE = "data/processed/cat/cat.1.jpg"
+# Obtém o caminho absoluto do diretório raiz do projeto
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+# Constrói o caminho completo para a imagem usando o caminho raiz do projeto
+TEST_IMAGE = os.path.join(PROJECT_ROOT, "data/processed/cat/cat.1.jpg")
+
 
 @pytest.mark.parametrize("image_path", [TEST_IMAGE])
 def test_recommend_endpoint(image_path):

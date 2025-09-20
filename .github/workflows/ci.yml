@@ -13,13 +13,6 @@ jobs:
     env:
       PYTHONPATH: ${{ github.workspace }}
 
-    services:
-      docker:
-        image: docker:24.0.5
-        options: --privileged
-        ports:
-          - 8000:8000
-
     steps:
     # 1️⃣ Checkout do repositório
     - name: Checkout repository
@@ -41,11 +34,11 @@ jobs:
     - name: Build Docker image
       run: docker build -t sistema-recomenda-imag .
 
-    # 5️⃣ Start API via docker-compose em background
+    # 5️⃣ Start API via docker compose em background
     - name: Start API container
       run: |
-        docker-compose up -d --build
-        sleep 10  # espera API subir
+        docker compose up -d --build
+        sleep 15  # espera API subir
 
     # 6️⃣ Rodar todos os testes com pytest
     - name: Run Tests
@@ -54,4 +47,4 @@ jobs:
 
     # 7️⃣ Parar containers ao final
     - name: Stop Docker containers
-      run: docker-compose down
+      run: docker compose down

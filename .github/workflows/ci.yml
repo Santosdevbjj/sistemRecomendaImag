@@ -10,51 +10,53 @@ jobs:
   build-test-api:
     runs-on: ubuntu-latest
 
+    # Adiciona as permissões de leitura para o repositório e pacotes.
+    permissions:
+      contents: read
+      packages: read
+
     env:
       PYTHONPATH: ${{ github.workspace }}
 
     steps:
-    # 1️⃣ Checkout do repositório
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      # 1️⃣ Checkout do repositório.
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    # 2️⃣ Setup Python 3.10
-    - name: Setup Python 3.10
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.10"
+      # 2️⃣ Configuração do Python 3.10.
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
 
-    # 3️⃣ Upgrade pip e instalar dependências
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install coverage pytest-cov
+      # 3️⃣ Instalação de dependências do Python.
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install coverage pytest-cov
 
-    # 4️⃣ Build da imagem Docker
-    - name: Build Docker image
-      run: docker build -t sistema-recomenda-imag .
+      # 4️⃣ Inicia a API com Docker Compose em background, construindo as imagens.
+      - name: Start API with Docker Compose
+        run: |
+          docker compose up -d --build
+          sleep 15  # Aguarda a API estar disponível
 
-    # 5️⃣ Start API via docker compose em background
-    - name: Start API container
-      run: |
-        docker compose up -d --build
-        sleep 15  # espera API subir
+      # 5️⃣ Execução dos testes com cobertura.
+      - name: Run Tests with Coverage
+        run: |
+          coverage run -m pytest --maxfail=1 --disable-warnings
+          coverage report -m
+          coverage xml
 
-    # 6️⃣ Rodar todos os testes com coverage
-    - name: Run Tests with Coverage
-      run: |
-        coverage run -m pytest --maxfail=1 --disable-warnings
-        coverage report -m
-        coverage xml
+      # 6️⃣ Upload do relatório de cobertura como um artefato.
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage.xml
 
-    # 7️⃣ Upload de relatório de cobertura
-    - name: Upload Coverage Report
-      uses: actions/upload-artifact@v3
-      with:
-        name: coverage-report
-        path: coverage.xml
-
-    # 8️⃣ Parar containers ao final
-    - name: Stop Docker containers
-      run: docker compose down
+      # 7️⃣ Parada e remoção dos containers ao final do job.
+      - name: Stop and remove Docker containers
+        if: always() # Garante que este passo sempre seja executado
+        run: docker compose down

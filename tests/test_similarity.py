@@ -1,5 +1,9 @@
 # tests/test_similarity.py
+
+import sys
 import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import numpy as np
 import pytest
 import faiss
@@ -16,7 +20,6 @@ TEST_IMAGES = [
 def model():
     """Carrega o modelo de embeddings"""
     m = EmbeddingModel(backbone="resnet50")
-    # Se houver checkpoint treinado, carregue os pesos
     checkpoint_path = "data/models/embedding_model.pth"
     if os.path.exists(checkpoint_path):
         import torch
@@ -38,10 +41,8 @@ def test_faiss_index(model):
     index = faiss.IndexFlatL2(embeddings_np.shape[1])
     index.add(embeddings_np)
     
-    # Busca top-2 similares da primeira imagem
     D, I = index.search(embeddings_np[0:1], k=2)
     
     assert I.shape == (1, 2), "Formato do resultado FAISS incorreto"
     assert D.shape == (1, 2), "Formato das distâncias FAISS incorreto"
-    # A primeira imagem deve ser a si mesma
     assert I[0, 0] == 0, "A imagem mais próxima deve ser ela mesma"

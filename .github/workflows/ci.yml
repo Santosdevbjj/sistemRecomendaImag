@@ -29,6 +29,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install coverage pytest-cov
 
     # 4️⃣ Build da imagem Docker
     - name: Build Docker image
@@ -40,11 +41,20 @@ jobs:
         docker compose up -d --build
         sleep 15  # espera API subir
 
-    # 6️⃣ Rodar todos os testes com pytest
-    - name: Run Tests
+    # 6️⃣ Rodar todos os testes com coverage
+    - name: Run Tests with Coverage
       run: |
-        pytest -v --maxfail=1 --disable-warnings
+        coverage run -m pytest --maxfail=1 --disable-warnings
+        coverage report -m
+        coverage xml
 
-    # 7️⃣ Parar containers ao final
+    # 7️⃣ Upload de relatório de cobertura
+    - name: Upload Coverage Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage.xml
+
+    # 8️⃣ Parar containers ao final
     - name: Stop Docker containers
       run: docker compose down

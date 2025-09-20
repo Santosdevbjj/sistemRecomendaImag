@@ -8,8 +8,6 @@ services:
     container_name: recomendacao_api
     ports:
       - "8000:8000"
-    depends_on:
-      - faiss
     volumes:
       - ./data:/app/data
       - ./src:/app/src
@@ -17,6 +15,8 @@ services:
     environment:
       - FAISS_HOST=faiss
       - FAISS_PORT=12345
+    depends_on:
+      - faiss
 
   faiss:
     image: ghcr.io/facebookresearch/faiss-cpu:latest
@@ -25,7 +25,7 @@ services:
       - "12345"
     volumes:
       - ./data:/data
-    command: tail -f /dev/null  # placeholder, se preferir pode rodar faiss como lib chamada via API python
+    command: tail -f /dev/null  # Placeholder: FAISS rodará via Python, não via serviço externo
 
 volumes:
   data:

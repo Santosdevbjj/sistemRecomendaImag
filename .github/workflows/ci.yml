@@ -1,23 +1,57 @@
-name: CI
+name: CI/CD - Sistema de Recomendação por Imagens
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  lint-and-test:
+  build-test-api:
     runs-on: ubuntu-latest
+
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+
+    services:
+      docker:
+        image: docker:24.0.5
+        options: --privileged
+        ports:
+          - 8000:8000
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Lint
-        run: |
-          flake8 src || true
-      - name: Run tests
-        run: |
-          pytest -q
+    # 1️⃣ Checkout do repositório
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 2️⃣ Setup Python 3.10
+    - name: Setup Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    # 3️⃣ Upgrade pip e instalar dependências
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # 4️⃣ Build da imagem Docker
+    - name: Build Docker image
+      run: docker build -t sistema-recomenda-imag .
+
+    # 5️⃣ Start API via docker-compose em background
+    - name: Start API container
+      run: |
+        docker-compose up -d --build
+        sleep 10  # espera API subir
+
+    # 6️⃣ Rodar todos os testes com pytest
+    - name: Run Tests
+      run: |
+        pytest -v --maxfail=1 --disable-warnings
+
+    # 7️⃣ Parar containers ao final
+    - name: Stop Docker containers
+      run: docker-compose down

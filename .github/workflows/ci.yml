@@ -36,13 +36,11 @@ jobs:
       - name: Build Docker services
         run: docker compose -f docker-compose.yml build
 
-      # 5️⃣ Executa testes dentro do container 'api' com coverage
-      - name: Run tests with coverage
+      # 5️⃣ Executa testes e gera relatório de cobertura em um único comando
+      - name: Run tests and generate coverage report
         run: |
           docker compose -f docker-compose.yml run --rm api \
-            coverage run --source=src,tests -m pytest --maxfail=1 --disable-warnings
-          docker compose -f docker-compose.yml run --rm api \
-            coverage xml -o /app/coverage.xml
+            bash -c "coverage run --source=src,tests -m pytest --maxfail=1 --disable-warnings && coverage xml -o /app/coverage.xml"
           docker cp recomendacao_api:/app/coverage.xml coverage.xml || true
 
       # 6️⃣ Upload do relatório de cobertura como artefato

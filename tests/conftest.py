@@ -1,22 +1,52 @@
-import os
+# tests/conftest.py
 import pytest
+from io import BytesIO
 from PIL import Image
 
-@pytest.fixture(scope="session", autouse=True)
-def prepare_test_images():
+@pytest.fixture
+def dummy_image():
     """
-    Cria automaticamente imagens de teste para a API e garante
-    que os diretórios existam dentro do container.
+    Retorna uma imagem dummy em memória (vermelha 64x64).
     """
-    base_dir = "/app/data/processed"
-    categories = ["cat", "dog"]
+    buf = BytesIO()
+    img = Image.new("RGB", (64, 64), color=(255, 0, 0))
+    img.save(buf, format="JPEG")
+    buf.seek(0)
+    return buf
 
-    for cat in categories:
-        dir_path = os.path.join(base_dir, cat)
-        os.makedirs(dir_path, exist_ok=True)
-        img_path = os.path.join(dir_path, f"{cat}.1.jpg")
-        # Cria uma imagem RGB simples 64x64
-        if not os.path.exists(img_path):
-            Image.new("RGB", (64, 64), color=(255, 0, 0) if cat == "cat" else (0, 255, 0)).save(img_path)
+@pytest.fixture
+def dummy_images():
+    """
+    Retorna uma lista de imagens dummy de diferentes cores e tamanhos.
+    """
+    colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
+    sizes = [(64, 64), (128, 128), (32, 32)]
+    images = []
 
-    yield
+    for color in colors:
+        for size in sizes:
+            buf = BytesIO()
+            img = Image.new("RGB", size, color=color)
+            img.save(buf, format="JPEG")
+            buf.seek(0)
+            images.append(buf)
+    return images
+
+@pytest.fixture
+def synthetic_dataset(tmp_path):
+    """
+    Cria um diretório de dataset sintético com várias imagens dummy organizadas em classes.
+    """
+    classes = ["cat", "dog", "shoe"]
+    for cls in classes:
+        class_dir = tmp_path / cls
+        class_dir.mkdir()
+        for i in range(3):  # 3 imagens por classe
+            buf = BytesIO()
+            img = Image.new("RGB", (64, 64), color=(i*40, i*40, i*40))
+            img.save(buf, format="JPEG")
+            buf.seek(0)
+            file_path = class_dir / f"{cls}.{i+1}.jpg"
+            with open(file_path, "wb") as f:
+                f.write(buf.read())
+    return tmp_path

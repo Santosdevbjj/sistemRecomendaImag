@@ -1,27 +1,42 @@
-import os
+# tests/test_api.py
 import pytest
 from fastapi.testclient import TestClient
+from io import BytesIO
+from PIL import Image
 from src.webapp.app import app
 
 client = TestClient(app)
 
-# O TEST_IMAGE será definido pelo conftest.py
-TEST_IMAGE = "/app/data/processed/cat/cat.1.jpg"
+def create_dummy_image(color=(255, 0, 0), size=(64, 64)):
+    """
+    Cria uma imagem dummy em memória.
+    """
+    img = Image.new("RGB", size, color=color)
+    buf = BytesIO()
+    img.save(buf, format="JPEG")
+    buf.seek(0)
+    return buf
 
-@pytest.mark.parametrize("image_path", [TEST_IMAGE])
-def test_recommend_endpoint(image_path):
-    """Teste do endpoint /recommend da API"""
+@pytest.mark.parametrize("color", [(255, 0, 0), (0, 255, 0), (0, 0, 255)])
+def test_recommend_endpoint(color):
+    """
+    Teste do endpoint /recommend da API usando imagens dummy.
+    """
+    img_buf = create_dummy_image(color=color)
+    files = {"file": ("dummy.jpg", img_buf, "image/jpeg")}
 
-    # Verifica se a imagem de teste existe
-    assert os.path.exists(image_path), f"Imagem de teste não encontrada: {image_path}"
+    response = client.post("/recommend", files=files)
 
-    # Envia request POST para /recommend
-    with open(image_path, "rb") as f:
-        response = client.post("/recommend", files={"file": (os.path.basename(image_path), f, "image/jpeg")})
+    assert response.status_code == 200, "A API não retornou status 200 OK"
+    data = response.json()
+    assert "recommendations" in data, "O JSON retornado não contém 'recommendations'"
+    assert isinstance(data["recommendations"], list), "'recommendations' não é uma lista"
+    assert len(data["recommendations"]) > 0, "Nenhuma recomendação foi retornada"
 
-    # Verifica status da resposta
-    assert response.status_code == 200
-    # Verifica se retorna lista de resultados
-    json_data = response.json()
-    assert isinstance(json_data, list)
-    assert len(json_data) > 0
+def test_healthcheck():
+    """
+    Teste do endpoint raiz ou healthcheck para garantir que a API está ativa.
+    """
+    response = client.get("/")
+    assert response.status_code == 200, "Healthcheck falhou"
+    assert "message" in response.json(), "Healthcheck não retornou 'message'"

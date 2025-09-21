@@ -9,3 +9,5 @@ services:
     volumes:
       - ./data:/app/data
       - ./src:/app/src
+
+docker compose -f docker-compose.yml run --rm api uvicorn src.webapp.app:app --host 0.0.0.0 --port 8000

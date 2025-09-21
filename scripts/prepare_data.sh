@@ -32,17 +32,17 @@ unzip -o "$FILENAME" -d .
 
 echo "🧹 Organizando dataset..."
 
-# Verifica se a pasta descompactada existe
+# Use find para mover de forma confiável os arquivos de imagem
 if [ -d "$UNZIPPED_DIR/train" ]; then
     echo "Movendo imagens de treino..."
-    # Move imagens de gatos para o diretório de gatos processados
-    mv "$UNZIPPED_DIR/train/cats"/* "../processed/cats/" || true
-    # Move imagens de cachorros para o diretório de cachorros processados
-    mv "$UNZIPPED_DIR/train/dogs"/* "../processed/dogs/" || true
+    # Move imagens de gatos
+    find "$UNZIPPED_DIR/train/cats" -name "*.jpg" -exec mv {} "../processed/cats/" \;
+    # Move imagens de cachorros
+    find "$UNZIPPED_DIR/train/dogs" -name "*.jpg" -exec mv {} "../processed/dogs/" \;
 
     echo "Movendo imagens de validação..."
-    mv "$UNZIPPED_DIR/validation/cats"/* "../processed/cats/" || true
-    mv "$UNZIPPED_DIR/validation/dogs"/* "../processed/dogs/" || true
+    find "$UNZIPPED_DIR/validation/cats" -name "*.jpg" -exec mv {} "../processed/cats/" \;
+    find "$UNZIPPED_DIR/validation/dogs" -name "*.jpg" -exec mv {} "../processed/dogs/" \;
 
     echo "Limpeza..."
     # Remove o diretório descompactado para evitar duplicação

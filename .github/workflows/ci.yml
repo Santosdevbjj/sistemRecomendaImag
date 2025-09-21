@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write  # necessário para commitar o badge
+      contents: write
       packages: read
 
     steps:
@@ -19,15 +19,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      # 2️⃣ Configurar Docker Buildx
+      # 2️⃣ Configure Docker Buildx
       - name: Setup Docker
         uses: docker/setup-buildx-action@v3
+      
+      # 3️⃣ Run data preparation script
+      - name: Prepare Data
+        run: |
+          chmod +x ./scripts/prepare_data.sh
+          ./scripts/prepare_data.sh
 
-      # 3️⃣ Build dos serviços
+      # 4️⃣ Build Docker services
       - name: Build Docker services
         run: docker compose -f docker-compose.yml build
 
-      # 4️⃣ Executa testes dentro do container 'api' com coverage
+      # 5️⃣ Run tests inside the 'api' container with coverage
       - name: Run tests with coverage
         run: |
           docker compose -f docker-compose.yml run --rm api \
@@ -36,14 +42,14 @@ jobs:
             coverage xml -o /app/coverage.xml
           docker cp recomendacao_api:/app/coverage.xml coverage.xml || true
 
-      # 5️⃣ Upload do relatório de cobertura como artefato
+      # 6️⃣ Upload coverage report as an artifact
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage.xml
           
-      # 6️⃣ Geração do badge de cobertura
+      # 7️⃣ Generate coverage badge
       - name: Generate coverage badge
         uses: tj-actions/coverage-badge-py@v2
         with:
@@ -51,14 +57,14 @@ jobs:
           overwrite: true
           coverage-path: coverage.xml
 
-      # 7️⃣ Commit automático do badge no repositório
+      # 8️⃣ Commit badge to the repository
       - name: Commit coverage badge
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "chore: update coverage badge"
           file_pattern: coverage.svg
 
-      # 8️⃣ Limpeza de containers e volumes
+      # 9️⃣ Stop and remove containers and volumes
       - name: Stop and remove Docker containers
         if: always()
         run: docker compose -f docker-compose.yml down -v

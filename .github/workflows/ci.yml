@@ -41,8 +41,7 @@ jobs:
         run: |
           chmod +x ./scripts/run_tests.sh
           docker compose -f docker-compose.yml run --rm api ./scripts/run_tests.sh
-          docker cp recomendacao_api:/app/coverage.xml coverage.xml || true
-
+          
       # 6️⃣ Upload do relatório de cobertura como artefato
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
@@ -50,7 +49,7 @@ jobs:
           name: coverage-report
           path: coverage.xml
           
-      # 7️⃣ Geração do badge de cobertura (ajustado)
+      # 7️⃣ Geração do badge de cobertura
       - name: Generate coverage badge
         uses: tj-actions/coverage-badge-py@v2
         with:

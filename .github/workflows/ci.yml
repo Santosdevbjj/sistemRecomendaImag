@@ -50,13 +50,12 @@ jobs:
           name: coverage-report
           path: coverage.xml
           
-      # 7️⃣ Geração do badge de cobertura
+      # 7️⃣ Geração do badge de cobertura (ajustado)
       - name: Generate coverage badge
         uses: tj-actions/coverage-badge-py@v2
         with:
           output: coverage.svg
           overwrite: true
-          coverage-path: coverage.xml
 
       # 8️⃣ Commit automático do badge no repositório
       - name: Commit coverage badge

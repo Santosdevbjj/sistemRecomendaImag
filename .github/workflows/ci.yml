@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write  # necessário para commitar badge
+      contents: write  # necessário para commitar o badge
       packages: read
 
     steps:
@@ -19,7 +19,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      # 2️⃣ Instalação do Docker Buildx
+      # 2️⃣ Configurar Docker Buildx
       - name: Setup Docker
         uses: docker/setup-buildx-action@v3
 
@@ -27,14 +27,16 @@ jobs:
       - name: Build Docker services
         run: docker compose -f docker-compose.yml build
 
-      # 4️⃣ Executa testes com coverage dentro do container da API
+      # 4️⃣ Executa testes dentro do container 'api' com coverage
       - name: Run tests with coverage
         run: |
-          docker compose -f docker-compose.yml run --rm api coverage run -m pytest --maxfail=1 --disable-warnings
-          docker compose -f docker-compose.yml run --rm api coverage xml -o /app/coverage.xml
+          docker compose -f docker-compose.yml run --rm api \
+            coverage run -m pytest --maxfail=1 --disable-warnings
+          docker compose -f docker-compose.yml run --rm api \
+            coverage xml -o /app/coverage.xml
           docker cp recomendacao_api:/app/coverage.xml coverage.xml || true
 
-      # 5️⃣ Upload do relatório de cobertura
+      # 5️⃣ Upload do relatório de cobertura como artefato
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
         with:
@@ -49,7 +51,7 @@ jobs:
           overwrite: true
           coverage-path: coverage.xml
 
-      # 7️⃣ Commit do badge no repositório
+      # 7️⃣ Commit automático do badge no repositório
       - name: Commit coverage badge
         uses: stefanzweifel/git-auto-commit-action@v4
         with:

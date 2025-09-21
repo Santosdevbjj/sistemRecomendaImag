@@ -99,8 +99,8 @@ sistemRecomendaImag/
     ├── test_dataset.py        # Testes de datasets
     ├── test_similarity.py     # Testes de similaridade
     └── test_api.py            # Testes da API
-
 ```
+
 
 ---
 
@@ -139,7 +139,7 @@ pytest tests/
 
 ---
 
-🧪 Exemplos de Uso
+🧪 **Exemplos de Uso**
 
 Treinar modelo:
 
@@ -157,7 +157,7 @@ uvicorn src.webapp.app:app --reload
 
 ---
 
-📖 Notebooks Disponíveis
+📖 **Notebooks Disponíveis**
 
 01-data-exploration.ipynb → análise inicial do dataset
 
@@ -173,7 +173,7 @@ uvicorn src.webapp.app:app --reload
 
 ---
 
-📌 Contribuição
+📌 **Contribuição**
 
 1. Faça um fork do projeto
 
@@ -194,7 +194,7 @@ uvicorn src.webapp.app:app --reload
 
 ---
 
-📜 Licença
+📜 **Licença**
 
 Este projeto está sob a licença MIT.
 Sinta-se livre para usar, modificar e distribuir.
@@ -202,9 +202,8 @@ Sinta-se livre para usar, modificar e distribuir.
 
 ---
 
----
 
-👉 Quer que eu prepare também uma **versão em inglês do README.md** para deixar o repositório mais internacional e atrativo para recrutadores e colaboradores globais?
+
 
 
 

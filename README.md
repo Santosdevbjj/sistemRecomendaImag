@@ -100,12 +100,13 @@ sistemRecomendaImag/
     ├── test_similarity.py     # Testes de similaridade
     └── test_api.py            # Testes da API
 
-
----
 ```
 
+---
 
-⚙️ Como Executar o Projeto
+
+
+⚙️ **Como Executar o Projeto**
 
 🔹 1. Clonar o repositório
 

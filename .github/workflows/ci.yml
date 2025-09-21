@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD - Sistema de Recomendação por Imagens
 
 on:
   push:
@@ -7,31 +7,41 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  build-test-api:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write  # necessário para commitar badge
+      packages: read
+
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      # 1️⃣ Checkout do repositório
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      # 2️⃣ Instalação do Docker Buildx
+      - name: Setup Docker
+        uses: docker/setup-buildx-action@v3
 
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v2
+      # 3️⃣ Build dos serviços
+      - name: Build Docker services
+        run: docker compose -f docker-compose.yml build
 
-      - name: Build services
-        run: docker-compose build
-
-      - name: Run tests inside Docker
+      # 4️⃣ Executa testes com coverage dentro do container da API
+      - name: Run tests with coverage
         run: |
-          docker-compose run --rm tests
-          # Move coverage.xml out of container
-          docker cp recommender_tests:/app/coverage.xml coverage.xml
+          docker compose -f docker-compose.yml run --rm api coverage run -m pytest --maxfail=1 --disable-warnings
+          docker compose -f docker-compose.yml run --rm api coverage xml -o /app/coverage.xml
+          docker cp recomendacao_api:/app/coverage.xml coverage.xml || true
 
-      - name: Upload coverage as artifact
+      # 5️⃣ Upload do relatório de cobertura
+      - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage.xml
-
+          
+      # 6️⃣ Geração do badge de cobertura
       - name: Generate coverage badge
         uses: tj-actions/coverage-badge-py@v2
         with:
@@ -39,8 +49,14 @@ jobs:
           overwrite: true
           coverage-path: coverage.xml
 
-      - name: Commit badge
+      # 7️⃣ Commit do badge no repositório
+      - name: Commit coverage badge
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "chore: update coverage badge"
           file_pattern: coverage.svg
+
+      # 8️⃣ Limpeza de containers e volumes
+      - name: Stop and remove Docker containers
+        if: always()
+        run: docker compose -f docker-compose.yml down -v

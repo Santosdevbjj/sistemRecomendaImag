@@ -1,35 +1,27 @@
-# tests/test_api.py
-
-import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 import pytest
-import requests
+from fastapi.testclient import TestClient
+from src.webapp.app import app
 
-API_URL = "http://localhost:8000/recommend"
-# Obtém o caminho absoluto do diretório raiz do projeto
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-# Constrói o caminho completo para a imagem usando o caminho raiz do projeto
-TEST_IMAGE = os.path.join(PROJECT_ROOT, "data/processed/cat/cat.1.jpg")
+client = TestClient(app)
 
+# O TEST_IMAGE será definido pelo conftest.py
+TEST_IMAGE = "/app/data/processed/cat/cat.1.jpg"
 
 @pytest.mark.parametrize("image_path", [TEST_IMAGE])
 def test_recommend_endpoint(image_path):
     """Teste do endpoint /recommend da API"""
-    
+
+    # Verifica se a imagem de teste existe
     assert os.path.exists(image_path), f"Imagem de teste não encontrada: {image_path}"
-    
+
+    # Envia request POST para /recommend
     with open(image_path, "rb") as f:
-        files = {"file": f}
-        try:
-            response = requests.post(API_URL, files=files)
-        except requests.exceptions.ConnectionError:
-            pytest.fail("❌ Não foi possível conectar à API. Verifique se o container está rodando.")
-    
-    assert response.status_code == 200, f"Status code inesperado: {response.status_code}"
-    
-    data = response.json()
-    assert "neighbors" in data, "Resposta não contém chave 'neighbors'"
-    assert isinstance(data["neighbors"], list), "'neighbors' deve ser uma lista"
-    assert len(data["neighbors"]) > 0, "Lista de vizinhos está vazia"
+        response = client.post("/recommend", files={"file": (os.path.basename(image_path), f, "image/jpeg")})
+
+    # Verifica status da resposta
+    assert response.status_code == 200
+    # Verifica se retorna lista de resultados
+    json_data = response.json()
+    assert isinstance(json_data, list)
+    assert len(json_data) > 0

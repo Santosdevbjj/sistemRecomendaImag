@@ -1,11 +1,11 @@
-# Usa uma imagem base Python mais completa
+# Usa uma imagem base Python
 FROM python:3.10
 
 # Define variáveis de ambiente para melhor desempenho e logs
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Instala dependências do sistema necessárias
+# Instala dependências do sistema
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     git \
@@ -22,7 +22,8 @@ WORKDIR /app
 # Copia os arquivos de requisitos
 COPY requirements.txt .
 
-# Instala as dependências do Python
+# Instala as dependências do Python.
+# Este passo agora incluirá python-multipart se você o adicionou ao requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copia o restante do código

@@ -1,3 +1,4 @@
+# .github/workflows/ci.yml
 name: CI/CD - Sistema de Recomendação por Imagens
 
 on:
@@ -19,37 +20,39 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      # 2️⃣ Configure Docker Buildx
+      # 2️⃣ Configurar Docker Buildx
       - name: Setup Docker
         uses: docker/setup-buildx-action@v3
       
-      # 3️⃣ Run data preparation script
-      - name: Prepare Data
+      # 3️⃣ Gera dados dummy para os testes
+      - name: Generate dummy data for tests
         run: |
-          chmod +x ./scripts/prepare_data.sh
-          ./scripts/prepare_data.sh
+          mkdir -p data/processed/cats
+          mkdir -p data/processed/dogs
+          touch data/processed/cats/cat_1.jpg
+          touch data/processed/dogs/dog_1.jpg
 
-      # 4️⃣ Build Docker services
+      # 4️⃣ Build dos serviços
       - name: Build Docker services
         run: docker compose -f docker-compose.yml build
 
-      # 5️⃣ Run tests inside the 'api' container with coverage
+      # 5️⃣ Executa testes dentro do container 'api' com coverage
       - name: Run tests with coverage
         run: |
           docker compose -f docker-compose.yml run --rm api \
-            coverage run -m pytest --maxfail=1 --disable-warnings
+            coverage run --source=src,tests -m pytest --maxfail=1 --disable-warnings
           docker compose -f docker-compose.yml run --rm api \
             coverage xml -o /app/coverage.xml
           docker cp recomendacao_api:/app/coverage.xml coverage.xml || true
 
-      # 6️⃣ Upload coverage report as an artifact
+      # 6️⃣ Upload do relatório de cobertura como artefato
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage.xml
           
-      # 7️⃣ Generate coverage badge
+      # 7️⃣ Geração do badge de cobertura
       - name: Generate coverage badge
         uses: tj-actions/coverage-badge-py@v2
         with:
@@ -57,14 +60,14 @@ jobs:
           overwrite: true
           coverage-path: coverage.xml
 
-      # 8️⃣ Commit badge to the repository
+      # 8️⃣ Commit automático do badge no repositório
       - name: Commit coverage badge
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "chore: update coverage badge"
           file_pattern: coverage.svg
 
-      # 9️⃣ Stop and remove containers and volumes
+      # 9️⃣ Limpeza de containers e volumes
       - name: Stop and remove Docker containers
         if: always()
         run: docker compose -f docker-compose.yml down -v

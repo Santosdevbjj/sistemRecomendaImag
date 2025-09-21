@@ -10,7 +10,7 @@
 
 
 
-# 📸 SistemRecomendaImag
+# 📸 Sistem de Recomendação de Imagens 
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
@@ -102,6 +102,8 @@ sistemRecomendaImag/
 
 
 ---
+```
+
 
 ⚙️ Como Executar o Projeto
 

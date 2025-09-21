@@ -23,14 +23,17 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Instala as dependências do Python.
-# Este passo agora incluirá python-multipart se você o adicionou ao requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copia o restante do código
 COPY . .
 
+# Adiciona permissões de execução para os scripts.
+RUN chmod +x ./scripts/run_tests.sh
+RUN chmod +x ./scripts/prepare_data.sh
+
 # Expõe a porta que a API usará
 EXPOSE 8000
 
 # Comando para iniciar a API com Uvicorn
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "src.webapp.app:app", "--host", "0.0.0.0", "--port", "8000"]
